@@ -144,8 +144,8 @@ def isNumType(string):
     if len(string) > 2: isNum2 = False
     if string[0].isnumeric() == False: isNum2 = False
 
-    if "+e" in string[1]: string = string[1].split("+e")
-    elif "-e" in string[1]: string = string[1].split("-e")
+    if "e+" in string[1]: string = string[1].split("e+")
+    elif "e-" in string[1]: string = string[1].split("e-")
     elif "e" in string[1]: string = string[1].split("e")
 
     for i in string:
@@ -157,8 +157,8 @@ def isNumType(string):
 
     if "," not in string and "." not in string: isNum2 = True
 
-    if "+e" in string: string = string[1].split("+e")
-    elif "-e" in string: string = string[1].split("-e")
+    if "e+" in string: string = string[1].split("e+")
+    elif "e-" in string: string = string[1].split("e-")
     elif "e" in string: string = string[1].split("e")
 
     for i in string:
