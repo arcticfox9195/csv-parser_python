@@ -6,64 +6,87 @@ import random
 import time
 
 def isValidDatetime(dt):
-    try:
-        if len(dt) == 19:
-            if "/" in dt:
-                datetime.strptime(dt, "%Y/%m/%d %H:%M:%S")
-            elif "-" in dt:
-                datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+    if "T" in dt:
+        arr = dt.split('T')
+        if len(arr) == 2:   #分割成date跟time分別確認
+            if isValidDate(arr[0]) == True & isValidTime(arr[1]) == True:
+                return True
             else:
                 return False
-        elif len(dt) == 17:
-            if "/" in dt:
-                datetime.strptime(dt, "%m/%d/%y %H:%M:%S")
-            elif "-" in dt:
-                datetime.strptime(dt, "%m-%d-%y %H:%M:%S")
-            else:
-                return False   
-        elif len(dt) == 16:
-            if "/" in dt:
-                datetime.strptime(dt, "%Y/%m/%d %H:%M")
-            elif "-" in dt:
-                datetime.strptime(dt, "%Y-%m-%d %H:%M")
-            else:
-                return False
-        elif len(dt) == 14:
-            if "/" in dt:
-                datetime.strptime(dt, "%m/%d/%y %H:%M")
-            elif "-" in dt:
-                datetime.strptime(dt, "%m-%d-%y %H:%M")
-            else:
-                return False  
         else:
             return False
-        return True
-    except:
-        return False
-    
-def isValidDate(d):
-    try:
-        if len(d) ==10:
-            if "/" in d:
-                datetime.strptime(d, "%Y/%m/%d")
-            elif "-" in d:
-                datetime.strptime(d, "%Y-%m-%d")
-            elif " " in d:
-                datetime.strptime(d, "%Y %m %d")
+    elif " " in dt:
+        arr = dt.split(' ')
+        if len(arr) == 2:
+            if isValidDate(arr[0]) == True & isValidTime(arr[1]) == True:
+                return True
+            else:
+                return False
+        elif len(arr) == 4: #考慮若前面的date是用空格為分隔符
+            tempDate = arr[0] + ' ' + arr[1] + ' ' + arr[2]
+            if isValidDate(tempDate) == True & isValidTime(arr[3]) == True:
+                return True
             else:
                 return False
         else:
-            if "/" in d:
-                datetime.strptime(d, "%m/%d/%y")
-            elif "-" in d:
-                datetime.strptime(d, "%m-%d-%y")
-            elif " " in d:
-                datetime.strptime(d, "%m %d %y")
-            else:
-                return False
-        return True
-    except:
+            return False
+    else:
         return False
+        
+    
+def isValidDate(d):
+    if "/" in d: #先用if elif區分不同分隔符的判斷
+        try:
+            time.strptime(d, "%Y/%m/%d")
+            return True
+        except: #用三層try依序確認三種格式 全部都不符合代表不為date則return false
+            try:
+                time.strptime(d, "%d/%m/%Y")
+                return True
+            except:
+                try:
+                    time.strptime(d, "%m/%d/%Y")
+                    return True
+                except:
+                    return False
+    elif "-" in d:
+        try:
+            time.strptime(d, "%Y-%m-%d")
+            return True
+        except:
+            try:
+                time.strptime(d, "%d-%m-%Y")
+                return True
+            except:
+                try:
+                    time.strptime(d, "%m-%d-%Y")
+                    return True
+                except:
+                    return False
+    elif " " in d:
+        try:
+            time.strptime(d, "%Y %m %d")
+            return True
+        except:
+            try:
+                time.strptime(d, "%d %m %Y")
+                return True
+            except:
+                try:
+                    time.strptime(d, "%m %d %Y")
+                    return True
+                except:
+                    return False
+    else:
+        try:
+            time.strptime(d, "%Y年%m月%d日")
+            return True
+        except:
+            try:
+                time.strptime(d, "%Y년%m월%d일")
+                return True
+            except:
+                return False
 
 def isValidTime(t):
     try:
@@ -299,6 +322,41 @@ def typeScore(csvList):
 
     if typeCell == 0: return 10 ** (-10)
     else: return typeCell / totalCell
+
+def FindTheCorrectRowFormat(csvList):
+    print("目前測試的csv file共有"+ str(len(csvList)) + "行")
+    q = int(input("以 q個Row為一組:"))
+    if len(csvList) % q != 0:   #先用if else判斷要分成幾組
+        group_num = int(len(csvList) // q + 1)
+    else:
+        group_num = int(len(csvList) / q)
+
+    tempRecord = []   #暫時紀錄分組過程以選出每組的正確格式
+    firstTimeGroupingResult = []  #紀錄首次分組後每組選出的正確格式
+
+    for i in range(0,group_num):    #外迴圈每圈代表一組
+        for j in range(0,q):    #第一個內迴圈負責將該組q個row送入暫用array
+            if i * q + j < len(csvList):    #確保最後一組不會因index超出csv file的row 數而報錯
+                tempRecord.append(typeArray[i * q + j])
+        max_count = 0  #紀錄最多出現次數
+        #print(tempRecord) 檢查每一組data是否正確
+        for j in range(0,len(tempRecord)):    #第二個內迴圈負責選出該組內出現最多次的格式
+            temp_count = tempRecord.count(tempRecord[j])
+            if temp_count > max_count:
+                max_count = temp_count
+                max_appear_format = tempRecord[j]
+        #print(max_appear_format) 檢查選出的格式是否正確
+        firstTimeGroupingResult.append(max_appear_format)
+        tempRecord.clear()  #進下一組前記得清空
+
+    max_count = 0
+    for i in range(0,group_num):    #從第一次找出的格式中進行第二次選擇 同樣選出出現最多的格式
+        temp_count = firstTimeGroupingResult.count(firstTimeGroupingResult[i])
+        if temp_count > max_count:
+                max_count = temp_count
+                result_format = firstTimeGroupingResult[i]
+
+    return result_format    #回傳最終選出的row 格式
 
 def addDelimiter(csvList):
     #print(typeArray)
