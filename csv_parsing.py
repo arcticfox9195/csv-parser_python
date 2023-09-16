@@ -32,7 +32,6 @@ def isValidDatetime(dt):
             return False
     else:
         return False
-        
     
 def isValidDate(d):
     if "/" in d: #先用if elif區分不同分隔符的判斷
@@ -126,6 +125,7 @@ def isNumType(string):
     isNum2 = True
     tempFlag = False    # 是否已存在小數點
 
+    string = string.strip()
     if string.isnumeric() == True: return True
 
     if string[0] == "+": string = string.strip("+")    # 去掉正負號
@@ -323,40 +323,41 @@ def typeScore(csvList):
     if typeCell == 0: return 10 ** (-10)
     else: return typeCell / totalCell
 
-def FindTheCorrectRowFormat(csvList):
-    print("目前測試的csv file共有"+ str(len(csvList)) + "行")
-    q = int(input("以 q個Row為一組:"))
-    if len(csvList) % q != 0:   #先用if else判斷要分成幾組
-        group_num = int(len(csvList) // q + 1)
-    else:
-        group_num = int(len(csvList) / q)
+def findCorrectFormat(csvList):
+    print("目前測試的 csv file 共有 " + str(len(csvList)) + " 行")
+    q = int(input("以 q 個 Row 為一組: "))
 
-    tempRecord = []   #暫時紀錄分組過程以選出每組的正確格式
-    firstTimeGroupingResult = []  #紀錄首次分組後每組選出的正確格式
+    # 先用if else判斷要分成幾組
+    if len(csvList) % q != 0: groupNum = int(len(csvList) // q + 1)
+    else: groupNum = int(len(csvList) / q)
 
-    for i in range(0,group_num):    #外迴圈每圈代表一組
-        for j in range(0,q):    #第一個內迴圈負責將該組q個row送入暫用array
-            if i * q + j < len(csvList):    #確保最後一組不會因index超出csv file的row 數而報錯
+    tempRecord = []                 # 暫時紀錄分組過程以選出每組的正確格式
+    firstTimeGroupingResult = []    # 紀錄首次分組後每組選出的正確格式
+
+    for i in range(0, groupNum):            # 外迴圈每圈代表一組
+        for j in range(0,q):                # 第一個內迴圈負責將該組q個row送入暫用array
+            if i * q + j < len(csvList):    # 確保最後一組不會因index超出csv file的row 數而報錯
                 tempRecord.append(typeArray[i * q + j])
-        max_count = 0  #紀錄最多出現次數
+
+        maxCount = 0    # 紀錄最多出現次數
         #print(tempRecord) 檢查每一組data是否正確
-        for j in range(0,len(tempRecord)):    #第二個內迴圈負責選出該組內出現最多次的格式
-            temp_count = tempRecord.count(tempRecord[j])
-            if temp_count > max_count:
-                max_count = temp_count
-                max_appear_format = tempRecord[j]
+        for j in range(0, len(tempRecord)):    # 第二個內迴圈負責選出該組內出現最多次的格式
+            tempCount = tempRecord.count(tempRecord[j])
+            if tempCount > maxCount:
+                maxCount = tempCount
+                maxAppearFormat = tempRecord[j]
         #print(max_appear_format) 檢查選出的格式是否正確
-        firstTimeGroupingResult.append(max_appear_format)
-        tempRecord.clear()  #進下一組前記得清空
+        firstTimeGroupingResult.append(maxAppearFormat)
+        tempRecord.clear()    # 進下一組前記得清空
 
-    max_count = 0
-    for i in range(0,group_num):    #從第一次找出的格式中進行第二次選擇 同樣選出出現最多的格式
-        temp_count = firstTimeGroupingResult.count(firstTimeGroupingResult[i])
-        if temp_count > max_count:
-                max_count = temp_count
-                result_format = firstTimeGroupingResult[i]
+    maxCount = 0
+    for i in range(0, groupNum):    # 從第一次找出的格式中進行第二次選擇 同樣選出出現最多的格式
+        tempCount = firstTimeGroupingResult.count(firstTimeGroupingResult[i])
+        if tempCount > maxCount:
+            maxCount = tempCount
+            resultFormat = firstTimeGroupingResult[i]
 
-    return result_format    #回傳最終選出的row 格式
+    return resultFormat    # 回傳最終選出的row格式
 
 def addDelimiter(csvList):
     #print(typeArray)
@@ -537,7 +538,30 @@ def addNewline(csvList):
                         currentPos += 1
         currentRow += 1                           
     return csvList                                        
-                            
+
+def addNull():
+    for i in typeArray:
+        #print(i)
+        minus = len(correctFormat) - len(i)
+        if minus > 0:    # 如果正確type的row長度大於跑到的row則做檢查
+            index = 0    # index for correctFormat
+            for j in i:
+                #print(j)
+                isFound = False
+                if j != correctFormat[index]:    # 如果跑到的row的type和correctFormat的type不一樣，就從correctFormat往後找找看有沒有一樣的
+                    for k in range(1, len(correctFormat) - index):
+                        if j == correctFormat[index + k]: 
+                            isFound = True
+                            break
+                    
+                    if isFound == False: continue
+                    
+                    for l in range(k): i.insert(index + l, "n/a type")
+
+                index += 1
+
+    print(typeArray)
+
 # main
 with open("csv.csv", newline = "") as csvfile:
     lines = csv.reader(csvfile, delimiter = ";")
@@ -563,8 +587,13 @@ with open("csv.csv", newline = "") as csvfile:
     qs = ps * ts
     #print(qs)
 
-    result1 = addDelimiter(inputList)
+    correctFormat = findCorrectFormat(inputList)
+    print(correctFormat)
+
+    addNull()
+
+    #result1 = addDelimiter(inputList)
     #print(result1)
 
-    result2 = addNewline(result1)
+    #result2 = addNewline(result1)
     #print(result2)
