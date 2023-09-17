@@ -47,7 +47,20 @@ def isValidDate(d):
                     time.strptime(d, "%m/%d/%Y")
                     return True
                 except:
-                    return False
+                    try:
+                        time.strptime(d, "%y/%m/%d")
+                        return True
+                    except:
+                        try:
+                            time.strptime(d, "%d/%m/%y")
+                            return True
+                        except:
+                            try:
+                                time.strptime(d, "%m/%d/%y")
+                                return True
+                            except:
+                                return False
+
     elif "-" in d:
         try:
             time.strptime(d, "%Y-%m-%d")
@@ -61,7 +74,20 @@ def isValidDate(d):
                     time.strptime(d, "%m-%d-%Y")
                     return True
                 except:
-                    return False
+                    try:
+                        time.strptime(d, "%y-%m-%d")
+                        return True
+                    except:
+                        try:
+                            time.strptime(d, "%d-%m-%y")
+                            return True
+                        except:
+                            try:
+                                time.strptime(d, "%m-%d-%y")
+                                return True
+                            except:
+                                return False
+                            
     elif " " in d:
         try:
             time.strptime(d, "%Y %m %d")
@@ -75,7 +101,20 @@ def isValidDate(d):
                     time.strptime(d, "%m %d %Y")
                     return True
                 except:
-                    return False
+                    try:
+                        time.strptime(d, "%y %m %d")
+                        return True
+                    except:
+                        try:
+                            time.strptime(d, "%d %m %y")
+                            return True
+                        except:
+                            try:
+                                time.strptime(d, "%m %d %y")
+                                return True
+                            except:
+                                return False
+                            
     else:
         try:
             time.strptime(d, "%Y年%m月%d日")
@@ -85,7 +124,15 @@ def isValidDate(d):
                 time.strptime(d, "%Y년%m월%d일")
                 return True
             except:
-                return False
+                try:
+                    time.strptime(d, "%y年%m月%d日")
+                    return True
+                except:
+                    try:
+                        time.strptime(d, "%y년%m월%d일")
+                        return True
+                    except:
+                        return False
 
 def isValidTime(t):
     try:
