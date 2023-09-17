@@ -595,17 +595,21 @@ def addNull():
             for j in i:
                 #print(j)
                 isFound = False
+                temp = 0
                 if j != correctFormat[index]:    # 如果跑到的row的type和correctFormat的type不一樣，就從correctFormat往後找找看有沒有一樣的
                     for k in range(1, len(correctFormat) - index):
-                        if j == correctFormat[index + k]: 
+                        if j == correctFormat[index + k]:   #找相同的type
                             isFound = True
+                            temp = k    #找到後記錄相同的type在後 temp個位置
                             break
                     
                     if isFound == False: continue
                     
-                    for l in range(k): i.insert(index + l, "n/a type")
-
-                index += 1
+                    for l in range(k): i.insert(index + l, "n/a type")  #補temp個 n/a type讓當前的type對應到正確格式的type
+                    
+                    index += temp   #index跳至已經修復完的位置
+                else:
+                    index += 1  #若type相同，檢查下一個type
 
     print(typeArray)
 
