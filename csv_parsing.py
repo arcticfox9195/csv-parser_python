@@ -213,10 +213,10 @@ def isNumType(string):
     # case 2
     if len(string) > 2: isNum2 = False
     if string[0].isnumeric() == False: isNum2 = False
-
-    if "+e" in string[1]: string = string[1].split("+e")
-    elif "-e" in string[1]: string = string[1].split("-e")
-    elif "e" in string[1]: string = string[1].split("e")
+    
+    """if "e+" in string[1]: string = string[1].split("e+")
+    elif "e-" in string[1]: string = string[1].split("e-")
+    elif "e" in string[1]: string = string[1].split("e")"""
 
     for i in string:
         for j in i:
@@ -227,9 +227,9 @@ def isNumType(string):
 
     if "," not in string and "." not in string: isNum2 = True
 
-    if "+e" in string: string = string[1].split("+e")
-    elif "-e" in string: string = string[1].split("-e")
-    elif "e" in string: string = string[1].split("e")
+    """if "e+" in string: string = string[1].split("e+")
+    elif "e-" in string: string = string[1].split("e-")
+    elif "e" in string: string = string[1].split("e")"""
 
     for i in string:
         if i.isnumeric() == True: continue
@@ -289,7 +289,7 @@ def patternScore(csvList):
 
     numExist = []    # 記錄有幾種長度
     numExist.append(listLen[0])
-
+    
     for i in listLen:
         for j in numExist:
             if i == j: break
@@ -343,7 +343,7 @@ def typeScore(csvList):
 
             elif j.strip() == "N/A" or j.strip() == "n/a": 
                 typeMatrix.append(1)
-                subArray.append("n/a Type")
+                subArray.append("n/a type")
 
             elif isAlphanumeric(j) == True: 
                 typeMatrix.append(1)
@@ -406,6 +406,44 @@ def findCorrectFormat(csvList):
 
     return resultFormat    # 回傳最終選出的row格式
 
+def typeCheck(str):
+    if isValidDatetime(str) == True: return "datetime"
+    elif isValidDate(str) == True: return "date"
+    elif isValidTime(str) == True: return "time"
+    elif isValidUrl(str) == True: return "url"
+    elif isValidEmail(str) == True: return "email"
+    elif isPercentage(str) == True: return "percentage"
+    elif isCurrency(str) == True: return "currency"
+    elif isNumType(str) == True: return "num type"
+    elif str.strip() == "N/A" or str.strip() == "n/a": return "n/a type"
+    elif isAlphanumeric(str) == True: return "alphanumeric"
+    else: return "no type"
+
+def addDelimiter():
+    rowIndex = 0
+    for i in typeArray:
+        if len(i) < len(correctFormat):
+            formatIndex = 0
+            columnIndex = 0
+            for j in i:
+                if j != correctFormat[formatIndex]: 
+                    for k in range(1, len(inputList[rowIndex][columnIndex])):
+                        frontType = typeCheck(inputList[rowIndex][columnIndex][:k])
+                        endType = typeCheck(inputList[rowIndex][columnIndex][k:])
+                        #print(inputList[rowIndex][columnIndex][:k], inputList[rowIndex][columnIndex][k:])
+                        #print(frontType, endType)
+                        if frontType == correctFormat[formatIndex] and endType == correctFormat[formatIndex+1]:
+                            frontStr = inputList[rowIndex][columnIndex][:k]
+                            endStr = inputList[rowIndex][columnIndex][k:]
+                            inputList[rowIndex][columnIndex] = frontStr
+                            inputList[rowIndex].insert(columnIndex + 1, endStr)
+                            break
+                formatIndex += 1
+                columnIndex += 1
+        rowIndex += 1
+    print(inputList)
+
+"""
 def addDelimiter(csvList):
     #print(typeArray)
     averLen = 0
@@ -482,9 +520,9 @@ def addDelimiter(csvList):
 
                         currentPos += 1
         currentRow += 1                           
-    #print(csvList)
-    return csvList 
-            
+    print(csvList)
+    #return csvList 
+"""            
 def addNewline(csvList):
     averLen = 0
     for i in listLen: averLen += i
@@ -598,20 +636,20 @@ def addNull():
                 temp = 0
                 if j != correctFormat[index]:    # 如果跑到的row的type和correctFormat的type不一樣，就從correctFormat往後找找看有沒有一樣的
                     for k in range(1, len(correctFormat) - index):
-                        if j == correctFormat[index + k]:   #找相同的type
+                        if j == correctFormat[index + k]:   # 找相同的type
                             isFound = True
-                            temp = k    #找到後記錄相同的type在後 temp個位置
+                            temp = k    # 找到後記錄相同的type在後 temp個位置
                             break
                     
                     if isFound == False: continue
                     
-                    for l in range(k): i.insert(index + l, "n/a type")  #補temp個 n/a type讓當前的type對應到正確格式的type
+                    for l in range(k): i.insert(index + l, "n/a type")  # 補temp個 n/a type讓當前的type對應到正確格式的type
                     
-                    index += temp   #index跳至已經修復完的位置
+                    index += temp   # index跳至已經修復完的位置
                 else:
-                    index += 1  #若type相同，檢查下一個type
+                    index += 1  # 若type相同，檢查下一個type
 
-    print(typeArray)
+    #print(typeArray)
 
 # main
 with open("csv.csv", newline = "") as csvfile:
@@ -634,12 +672,14 @@ with open("csv.csv", newline = "") as csvfile:
 
     ts = typeScore(inputList)
     #print(ts)
-
+    print(typeArray)
     qs = ps * ts
     #print(qs)
 
     correctFormat = findCorrectFormat(inputList)
     print(correctFormat)
+
+    addDelimiter()
 
     addNull()
 
