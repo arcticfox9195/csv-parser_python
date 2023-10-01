@@ -357,7 +357,7 @@ def typeScore(csvList):
         typeArray.append(subArray)
         #print(typeArray)
 
-    print(typeArray)
+    #print(typeArray)
     #print(typeMatrix)
     totalCell = len(typeMatrix)
     #print(totalCell)
@@ -422,7 +422,7 @@ def typeCheck(str):
 def addDelimiter():
     rowIndex = 0
     for i in typeArray:
-        if len(i) < len(correctFormat):
+        if len(i) < correctLen:
             formatIndex = 0
             columnIndex = 0
             for j in i:
@@ -441,7 +441,35 @@ def addDelimiter():
                 formatIndex += 1
                 columnIndex += 1
         rowIndex += 1
+    #print(inputList)
+
+def addNewline():
+    same = True
+    rowIndex = 0
+    tmpFront = []
+    tmpEnd = []
+
+    for i in typeArray:
+        if len(i) > 1.5 * correctLen: 
+            for j in range(correctLen):
+                if i[j] == correctFormat[j]: 
+                    tmpFront.append(inputList[rowIndex][j])
+                    continue
+                else:
+                    same = False
+                    break
+
+            for j in range(correctLen, len(inputList[rowIndex])): tmpEnd.append(inputList[rowIndex][j])
+
+            if same == True:
+                inputList[rowIndex] = tmpFront
+                rowIndex += 1
+                inputList.insert(rowIndex, tmpEnd)
+
+        rowIndex += 1
+
     print(inputList)
+            
 
 """
 def addDelimiter(csvList):
@@ -522,7 +550,8 @@ def addDelimiter(csvList):
         currentRow += 1                           
     print(csvList)
     #return csvList 
-"""            
+"""
+"""           
 def addNewline(csvList):
     averLen = 0
     for i in listLen: averLen += i
@@ -623,7 +652,7 @@ def addNewline(csvList):
                         currentPos += 1
         currentRow += 1                           
     return csvList                                        
-
+""" 
 def addNull():
     for i in typeArray:
         #print(i)
@@ -672,13 +701,15 @@ with open("csv.csv", newline = "") as csvfile:
 
     ts = typeScore(inputList)
     #print(ts)
-    print(typeArray)
+    #print(typeArray)
     qs = ps * ts
     #print(qs)
 
     correctFormat = findCorrectFormat(inputList)
-    print(correctFormat)
+    correctLen = len(correctFormat)
+    #print(correctFormat)
 
+    addNewline()
     addDelimiter()
 
     addNull()
