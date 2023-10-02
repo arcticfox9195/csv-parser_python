@@ -214,9 +214,9 @@ def isNumType(string):
     if len(string) > 2: isNum2 = False
     if string[0].isnumeric() == False: isNum2 = False
     
-    """if "e+" in string[1]: string = string[1].split("e+")
-    elif "e-" in string[1]: string = string[1].split("e-")
-    elif "e" in string[1]: string = string[1].split("e")"""
+    if "e+" in string[len(string)-1]: string = string[len(string)-1].split("e+")
+    elif "e-" in string[len(string)-1]: string = string[len(string)-1].split("e-")
+    elif "e" in string[len(string)-1]: string = string[len(string)-1].split("e")
 
     for i in string:
         for j in i:
@@ -227,9 +227,9 @@ def isNumType(string):
 
     if "," not in string and "." not in string: isNum2 = True
 
-    """if "e+" in string: string = string[1].split("e+")
-    elif "e-" in string: string = string[1].split("e-")
-    elif "e" in string: string = string[1].split("e")"""
+    if "e+" in string: string = string[len(string)-1].split("e+")
+    elif "e-" in string: string = string[len(string)-1].split("e-")
+    elif "e" in string: string = string[len(string)-1].split("e")
 
     for i in string:
         if i.isnumeric() == True: continue
@@ -432,16 +432,26 @@ def addDelimiter():
                         endType = typeCheck(inputList[rowIndex][columnIndex][k:])
                         #print(inputList[rowIndex][columnIndex][:k], inputList[rowIndex][columnIndex][k:])
                         #print(frontType, endType)
-                        if frontType == correctFormat[formatIndex] and endType == correctFormat[formatIndex+1]:
-                            frontStr = inputList[rowIndex][columnIndex][:k]
-                            endStr = inputList[rowIndex][columnIndex][k:]
-                            inputList[rowIndex][columnIndex] = frontStr
-                            inputList[rowIndex].insert(columnIndex + 1, endStr)
-                            typeArray[rowIndex][columnIndex] = frontType
-                            typeArray[rowIndex].insert(columnIndex + 1, endType)
-                            formatIndex += 1
-                            columnIndex += 1
-                            break
+                        
+                        if frontType == correctFormat[formatIndex]:
+                            try:
+                                if endType == correctFormat[formatIndex+1]:
+                                    frontStr = inputList[rowIndex][columnIndex][:k]
+                                    endStr = inputList[rowIndex][columnIndex][k:]
+                                    inputList[rowIndex][columnIndex] = frontStr
+                                    inputList[rowIndex].insert(columnIndex + 1, endStr)
+                                    typeArray[rowIndex][columnIndex] = frontType
+                                    typeArray[rowIndex].insert(columnIndex + 1, endType)
+                                    break
+                            except:
+                                if formatIndex == len(correctFormat)-1:
+                                    frontStr = inputList[rowIndex][columnIndex][:k]
+                                    endStr = inputList[rowIndex][columnIndex][k:]
+                                    inputList[rowIndex][columnIndex] = frontStr
+                                    inputList[rowIndex].insert(columnIndex + 1, endStr)
+                                    typeArray[rowIndex][columnIndex] = frontType
+                                    typeArray[rowIndex].insert(columnIndex + 1, endType)
+                                    break
                 formatIndex += 1
                 columnIndex += 1
         rowIndex += 1
@@ -475,188 +485,6 @@ def addNewline():
     print(inputList)
             
 
-"""
-def addDelimiter(csvList):
-    #print(typeArray)
-    averLen = 0
-    for i in listLen: averLen += i
-    averLen /= len(listLen)
-    currentRow = 0
-    #print(averLen, listLen)
-
-    for i in listLen:
-        #print(i)
-        if i < averLen:
-            for j in range(2):
-                randomPick = random.randint(0, len(listLen) - 1)
-                #print(randomPick)
-
-                if abs(i - listLen[randomPick]) < 6:
-                    currentPos = 0
-                    #print(listLen[randomPick])
-                    #print(i, typeArray[randomPick])
-
-                    for k in typeArray[randomPick]: 
-                        #print(typeArray[randomPick])
-                        if currentPos < len(typeArray[currentRow]) and k != typeArray[currentRow][currentPos]:
-                            #print(typeArray[currentRow][currentPos])
-                            str1 = csvList[randomPick][currentPos]
-                            str2 = csvList[currentRow][currentPos]
-                            subStr1 = str2[0:len(str1)]
-                            subStr2 = str2[len(str1):]
-                            #print(str1, str2)
-                            #print(subStr1, subStr2)
-
-                            if k == "datetime":
-                                if isinstance(subStr1, (datetime, date, time)) == True:
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-
-                            elif k == "url":
-                                if isValidUrl(subStr1) == True:
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-
-                            elif k == "email":
-                                if isValidEmail(subStr1) == True:
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-
-                            elif k == "percentage":
-                                if isPercentage(subStr1) == True:
-                                    #print(csvList[currentRow], currentPos, subStr1)
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-                                    #print(j, currentRow)
-                                    #print(csvList)
-
-                            elif k == "currency":     
-                                if isCurrency(subStr1) == True:
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-
-                            elif k == "num type":                               
-                                if isNumType(subStr1) == True:
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-
-                            elif k == "n/a type":                               
-                                if subStr1 == "N/A" or subStr1 == "n/a":
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-
-                            elif k == "alphanumeric":                               
-                                if isAlphanumeric(subStr1) == True:
-                                    csvList[currentRow][currentPos] = subStr1
-                                    csvList[currentRow].insert(currentPos + 1, subStr2)
-
-                        currentPos += 1
-        currentRow += 1                           
-    print(csvList)
-    #return csvList 
-"""
-"""           
-def addNewline(csvList):
-    averLen = 0
-    for i in listLen: averLen += i
-    averLen /= len(listLen)
-    currentRow = 0
-    #print(averLen, len(listLen))
-    #print(csvList)
-
-    for i in listLen:
-        if i > averLen:
-            for j in range(2):
-                randomPick = random.randint(0,len(listLen) - 1)
-                #print(randomPick)
-                #print(listLen[randomPick], i)
-
-                if i / listLen[randomPick] > 1.5:
-                    currentPos = 0
-                    
-                    for k in typeArray[randomPick]:
-                        #print(k, typeArray[currentRow][currentPos])
-                        #print(randomPick, currentPos)
-
-                        if currentPos < len(typeArray[currentRow]) and k != typeArray[randomPick][currentPos]:
-                            str1 = csvList[randomPick][currentPos]
-                            str2 = csvList[currentRow][currentPos]
-                            subStr1 = str2[0:len(str1)]
-                            subStr2 = str2[len(str1):]
-                            subList1 = csvList[currentRow][:currentPos-1]
-                            subList2 = csvList[currentRow][currentPos+1:]
-                            #print(csvList[randomPick][currentPos])
-                            #print(str1, str2)
-                            #print(subStr1, subStr2)
-                            #print(subList1, subList2)
-
-                            if k == "datetime":
-                                if isinstance(subStr1, (datetime, date, time)) == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "url":
-                                if isValidUrl(subStr1) == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "email":
-                                if isValidEmail(subStr1) == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "percentage":
-                                if isPercentage(subStr1) == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "currency":                               
-                                if isCurrency(subStr1) == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "numeric":                               
-                                if subStr1.isnumeric() == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "num type":                               
-                                if isNumType(subStr1) == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "n/a type":                               
-                                if subStr1 == "N/A" or subStr1 == "n/a":
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                            elif k == "alphanumeric":                               
-                                if isAlphanumeric(subStr1) == True:
-                                    subList1.append(subStr1)
-                                    subList2.insert(0, subStr2)
-                                    csvList.replace(currentRow, subList1)
-                                    csvList.insert(currentRow + 1, subList2)
-
-                        currentPos += 1
-        currentRow += 1                           
-    return csvList                                        
-""" 
 def addNull():
     for i in typeArray:
         #print(i)
@@ -713,8 +541,10 @@ with open("csv.csv", newline = "") as csvfile:
     correctLen = len(correctFormat)
     #print(correctFormat)
 
-    addNewline()
+
     addDelimiter()
+
+    addNewline()
 
     addNull()
 
