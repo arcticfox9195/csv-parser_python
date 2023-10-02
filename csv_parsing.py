@@ -437,6 +437,10 @@ def addDelimiter():
                             endStr = inputList[rowIndex][columnIndex][k:]
                             inputList[rowIndex][columnIndex] = frontStr
                             inputList[rowIndex].insert(columnIndex + 1, endStr)
+                            typeArray[rowIndex][columnIndex] = frontType
+                            typeArray[rowIndex].insert(columnIndex + 1, endType)
+                            formatIndex += 1
+                            columnIndex += 1
                             break
                 formatIndex += 1
                 columnIndex += 1
