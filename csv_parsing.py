@@ -5,6 +5,13 @@ import re
 import random
 import time
 
+def isEmpty(s):
+    if s == '':
+        return True
+    else:
+        return False
+
+
 def isValidDatetime(dt):
     if "T" in dt:
         arr = dt.split('T')
@@ -309,7 +316,11 @@ def typeScore(csvList):
         for j in i:
             #print(j)
             
-            if isValidDatetime(j) == True: 
+            if isEmpty(j) == True:
+                typeMatrix.append(1)
+                subArray.append("empty")
+
+            elif isValidDatetime(j) == True: 
                 typeMatrix.append(1)
                 subArray.append("datetime")
             
@@ -407,7 +418,8 @@ def findCorrectFormat(csvList):
     return resultFormat    # 回傳最終選出的row格式
 
 def typeCheck(str):
-    if isValidDatetime(str) == True: return "datetime"
+    if isEmpty(str) == True: return "empty"
+    elif isValidDatetime(str) == True: return "datetime"    
     elif isValidDate(str) == True: return "date"
     elif isValidTime(str) == True: return "time"
     elif isValidUrl(str) == True: return "url"
