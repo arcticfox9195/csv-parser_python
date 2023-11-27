@@ -85,12 +85,12 @@ class Environment:
         self.action_space_size = 2  # split 和 add 两个动作
         self.state = [] 
         self.initstate = [
-                    [1, 1, 0, 0, 2, 2],
-                    [1, 1, 0, 0, 2, 2],
-                    [1, 1, 0, 0, 2, 2],
-                    [1, 1, 0, 0, 2, 2],
-                    [1, 1, 0, 0, 2, 2],
-                    [1, 1, 0, 0, 2, 2]] 
+                    [1, 1, 2, 2, 3, 3],
+                    [1, 1, 2, 2, 3, 3],
+                    [1, 1, 2, 2, 3, 3],
+                    [1, 1, 2, 2, 3, 3],
+                    [1, 1, 2, 2, 3, 3],
+                    [1, 1, 2, 2, 3, 3]] 
 
 
     def init_state(self):
@@ -101,8 +101,11 @@ class Environment:
 
     def perform_split_action(self, row, column):
         n = self.state[row][column]
+        if n < 2: return
+
         appear_time = []
         appear_num = []
+
         for i in range(0,6):
             if i != row :
                 try:
@@ -114,16 +117,20 @@ class Environment:
                         appear_time[tmp] += 1
                 except:
                     pass
+                
         maxappear = max(appear_time)
         max_index = appear_time.index(maxappear)
         num1 = appear_num[max_index]
         num2 = n - num1
+
+        if num1 == 0 or num2 == 0: return
+
         self.state[row][column] = num1
         self.state[row].insert(column, num2)
             
         
     def perform_add_null_action(self, row, column):
-        self.state[row].insert(column, 0)
+        self.state[row].insert(column, 1)
 
     def take_action(self, action, row, column):
         if action == 0:  # Split action
@@ -198,6 +205,7 @@ class DQNAgent:
 
         # Flatten the state tensor
         state_tensor_flat = tf.reshape(state_tensor, shape=(1, -1))  # Flatten without specifying the size
+        print(state_tensor_flat)
 
         # Q-values for the current state
         q_values = self.q_network(state_tensor_flat)
@@ -256,10 +264,6 @@ class DQNAgent:
         if len(self.memory.buffer) % 10 == 0:
             self.target_q_network.set_weights(self.q_network.get_weights())
 
-
-
-
-
 # 训练DQN Agent
 def train_dqn_agent():
     env = Environment()
@@ -269,8 +273,9 @@ def train_dqn_agent():
     for episode in range(episodes):
         state = env.init_state()  
         
-        state = process_table(env.initstate)# 执行随机操作
+        state = process_table(env.initstate)    # 执行随机操作
         env.state = state
+        #print(state)
         
         total_reward = 0
         done = False
@@ -281,11 +286,15 @@ def train_dqn_agent():
             originQs = ps * ts
             
             action, row , column = agent.select_action(state)
+            print(state)
+            print(action, row , column)
+
+            if row >= 6: break
+                    
             env.take_action(action, row , column)
 
             next_state = env.get_state()
             reward = env.get_reward(originQs, next_state)
-        
             
             for st in state:
                 if len(st) > 6:
@@ -305,6 +314,7 @@ def train_dqn_agent():
             total_reward += reward
 
             agent.train()
+            
         print(f"Episode: {episode + 1}, Total Reward: {total_reward}")
 
 if __name__ == "__main__":
