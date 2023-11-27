@@ -288,8 +288,6 @@ def train_dqn_agent():
             action, row , column = agent.select_action(state)
             print(state)
             print(action, row , column)
-
-            if row >= 6: break
                     
             env.take_action(action, row , column)
 
