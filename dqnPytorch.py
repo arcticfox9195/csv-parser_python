@@ -16,7 +16,8 @@ def process_table(input_table):
     # 在整个表格上执行3次随机操作
     for _ in range(3):
         perform_random_action(result_table)
-
+    max_row_length = max(len(row) for row in result_table)
+    result_table = [row + [0] * (max_row_length - len(row)) for row in result_table]
     return result_table
 
 def perform_random_action(table):
@@ -36,7 +37,15 @@ def perform_random_action(table):
 def patternScore(csvList):
     sc = 0
     listLen = []
-    for i in csvList: listLen.append(len(i))    # 記錄每一列有幾個
+    for i in csvList: 
+        tmp_len = len(i)
+        for j in range(len(i)):
+            if i[len(i) - j - 1] == 0:
+                tmp_len -= 1
+            else:
+                break
+        listLen.append(tmp_len)
+      # 記錄每一列有幾個
 
     numExist = []    # 記錄有幾種長度
     numExist.append(listLen[0])
@@ -53,26 +62,31 @@ def patternScore(csvList):
 def typeScore(csvList):
     typeMatrix = []    # 0, 1 矩陣
     typeArray = []
-
+    tmp = 0
     for i in csvList: 
         subArray = []
 
         for j in i:            
-            if j == 2: 
+            if j == 3: 
                 typeMatrix.append(1)
                 subArray.append(2)
-
-            elif j == 1: 
+                tmp += 1
+            elif j == 2: 
                 typeMatrix.append(1)
                 subArray.append(1)
-
+                tmp += 1
+            elif j == 1:
+                typeMatrix.append(0)
+                subArray.append(0)
+                tmp += 1
             else: 
+                if j != 0:
+                    tmp += 1
                 typeMatrix.append(0)
                 subArray.append(0)
         
         typeArray.append(subArray)
-
-    totalCell = len(typeMatrix)
+    totalCell = tmp
     typeCell = 0    # "1" 個數
 
     for i in typeMatrix: 
@@ -202,8 +216,8 @@ class DQNAgent:
 
         # 根据状态或其他逻辑确定行和列
         # 例如，可以随机选择或根据特定的策略选择
-        row = np.random.randint(0, num_rows)
-        column = np.random.randint(0, num_columns)
+        row = np.random.randint(0, len(state))
+        column = np.random.randint(0, len(state[row]))
 
         return action, row, column
 
@@ -276,8 +290,11 @@ def train_dqn_agent():
         done = False
         
         while not done:
+            print(env.state)
             ps = patternScore(state)
+            print(ps)
             ts = typeScore(state)
+            print(ts)
             originQs = ps * ts
             
             action, row , column = agent.select_action(state)
