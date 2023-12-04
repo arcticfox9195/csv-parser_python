@@ -143,10 +143,19 @@ class Environment:
 
         self.state[row][column] = num1
         self.state[row].insert(column, num2)
-            
+
+        if len(self.state[row]) > 6: 
+            if 0 in self.state[row]: self.state[row].remove(0)
+
+        #print("after split: ", self.state)
         
     def perform_add_null_action(self, row, column):
         self.state[row].insert(column, 1)
+
+        if len(self.state[row]) > 6: 
+            if 0 in self.state[row]: self.state[row].remove(0)
+
+        #print("after add null: ", self.state)
 
     def take_action(self, action, row, column):
         if action == 0:  # Split action
