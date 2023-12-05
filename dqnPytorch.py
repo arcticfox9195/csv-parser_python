@@ -99,13 +99,13 @@ class Environment:
         num1 = appear_num[max_index]
         num2 = n - num1
 
-        if num1 == 0 or num2 == 0: return overflow
+        if num1 <= 0 or num2 <= 0: return overflow
 
         self.state[row][column] = num1
         self.state[row].insert(column, num2)
 
-        if len(self.state[row]) > 6: 
-            if 0 in self.state[row]: self.state[row].remove(0)
+        #if len(self.state[row]) > 6: 
+        #   if 0 in self.state[row]: self.state[row].remove(0)
         if len(self.state[row]) > 6:
                 overflow = self.state[row][6]
                 self.state[row] = self.state[row][:6]
@@ -115,8 +115,8 @@ class Environment:
     def perform_add_null_action(self, row, column):
         self.state[row].insert(column, 1)
         overflow = 0
-        if len(self.state[row]) > 6: 
-            if 0 in self.state[row]: self.state[row].remove(0)
+        #if len(self.state[row]) > 6: 
+        #   if 0 in self.state[row]: self.state[row].remove(0)
         if len(self.state[row]) > 6:
                 overflow = self.state[row][6]
                 self.state[row] = self.state[row][:6]
@@ -156,7 +156,7 @@ class QNetwork(nn.Module):
         self.output_layer = nn.Linear(64, action_space_size)
 
     def forward(self, state):
-        x = torch.relu(self.dense1(state))
+        x = torch.relu(self.dense1(state.view(-1, state.shape[1] * state.shape[2])))
         x = torch.relu(self.dense2(x))
         return self.output_layer(x)
 
@@ -170,6 +170,7 @@ class DQNAgent:
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
+        self.target_update_rate = target_update_rate
 
         self.q_network = QNetwork(action_space_size, state_space_size)
         self.target_q_network = QNetwork(action_space_size, state_space_size)
@@ -199,7 +200,10 @@ class DQNAgent:
 
         batch = self.memory.sample_batch(self.batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
-        print(states)
+        states = [list(state) for state in states]
+        for i in range(len(states)):
+            for j in range(len(states[i])):
+                states[i][j] = states[i][j][:6]
         states = torch.tensor(states, dtype=torch.float32)
         next_states = torch.tensor(next_states, dtype=torch.float32)
 
@@ -215,7 +219,7 @@ class DQNAgent:
             if done:
                 targets[i, action] = reward
             else:
-                targets[i, action] = reward + self.gamma * np.max(next_q_values[i])
+                targets[i, action] = reward + self.gamma * torch.max(next_q_values[i]).item()
 
         targets = torch.tensor(targets, dtype=torch.float32)
         loss = nn.functional.mse_loss(predictions, targets)
@@ -236,13 +240,13 @@ class DQNAgent:
 def train_dqn_agent():
     env = Environment()
     agent = DQNAgent(state_space_size=env.state_space_size, action_space_size=env.action_space_size)
-    episodes = 1000
+    episodes = 10000
 
     for episode in range(episodes):
         state = env.init_state()
         state = process_table(env.initstate)
         env.state = state
-
+        print(env.state)
         total_reward = 0
         done = False
         
@@ -258,21 +262,18 @@ def train_dqn_agent():
             reward = env.get_reward(originQs, next_state)
             
 
-            print(of)
             if of > 0:
                 reward = -1  # 分配負獎勵
                 done = True
             else:
                 reward = env.get_reward(originQs, next_state)
-            
             agent.add_agent_experience((state, action, reward, next_state, done))
 
             state = next_state
-            print(state)
             total_reward += reward
 
             agent.train()
-            
+        print(env.state)   
         print(f"Episode: {episode + 1}, Total Reward: {total_reward}")
 
 if __name__ == "__main__":
