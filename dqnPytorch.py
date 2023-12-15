@@ -202,8 +202,8 @@ class DQNAgent:
         states, actions, rewards, next_states, dones = zip(*batch)
         states = [list(state) for state in states]
         for i in range(len(states)):
-            for j in range(len(states[i])):
-                states[i][j] = states[i][j][:6]
+           for j in range(len(states[i])):
+               states[i][j] = states[i][j][:6]
         states = torch.tensor(states, dtype=torch.float32)
         next_states = torch.tensor(next_states, dtype=torch.float32)
 
@@ -240,7 +240,7 @@ class DQNAgent:
 def train_dqn_agent():
     env = Environment()
     agent = DQNAgent(state_space_size=env.state_space_size, action_space_size=env.action_space_size)
-    episodes = 10000
+    episodes = 1000
 
     for episode in range(episodes):
         state = env.init_state()
