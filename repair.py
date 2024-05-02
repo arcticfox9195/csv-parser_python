@@ -16,7 +16,6 @@ def repair(table, row, column, choice):
         table[row].insert(column, '')
         table[row].pop()
     else:
-        print(table[row][column][:index], table[row][column][index:])
         find = False
         record = ''
         for index in range(1, len(table[row][column])):
@@ -26,8 +25,8 @@ def repair(table, row, column, choice):
                 break
 
         if find == True:
-            table[row][column] = table[row][column][:record]
             table[row].insert(column+1, table[row][column][record:])
+            table[row][column] = table[row][column][:record]
             table[row].pop()
         else: 
             table[row].insert(column + 1, '')
