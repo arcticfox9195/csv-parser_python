@@ -161,7 +161,7 @@ class DQNAgent:
 def train_dqn_agent():
     env = Environment()
     agent = DQNAgent(state_space_size=env.state_space_size, action_row_space_size=env.action_row_space_size, action_col_space_size=env.action_col_space_size, action_choice_space_size=env.action_choice_space_size)
-    episodes = 100
+    episodes = 1000
 
     for episode in range(episodes):
         process_list, state, row, column, choice = csvParsing()
@@ -184,7 +184,7 @@ def train_dqn_agent():
         agent.train()
         
         #print(env.state, action_row, action_col, action_choice, reward_row, reward_col, reward_choice) 
-        print(action_choice)
+        #print(action_choice)
 
         repair_list = repair(process_list, action_row, action_col, action_choice)
         print(repair_list)
