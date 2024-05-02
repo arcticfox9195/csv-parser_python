@@ -11,8 +11,8 @@ def isEmpty(s):
     else:
         return False
 
-
 def isValidDatetime(dt):
+    if isinstance(dt, int) == True: return False
     if "T" in dt:
         arr = dt.split('T')
         if len(arr) == 2:   #分割成date跟time分別確認
@@ -41,6 +41,8 @@ def isValidDatetime(dt):
         return False
     
 def isValidDate(d):
+    if isinstance(d, int) == True: return False
+    d = d.strip()
     if "/" in d: #先用if elif區分不同分隔符的判斷
         try:
             time.strptime(d, "%Y/%m/%d")
@@ -157,10 +159,12 @@ def isValidUrl(url):
         return False
     
 def isValidEmail(email):
+    if isinstance(email, int) == True: return False
     if re.match(r"[^@]+@[^@]+\.[^@]+", email): return True  
     return False  
 
 def isPercentage(perNum):
+    if isinstance(perNum, int) == True: return False
     if perNum.endswith("%"):
         numPart = perNum[:-1]
         return numPart.isdigit()
@@ -168,6 +172,8 @@ def isPercentage(perNum):
     return False
 
 def isCurrency(value):
+    if isinstance(value, int) == True: return False
+    value = value.strip()
     if value.startswith("$"):
         numPart = value[1:]
         return numPart.isdigit()
@@ -175,13 +181,15 @@ def isCurrency(value):
     return False
 
 def isNumType(string):
+    if isinstance(string, int) == True: return True
     isNum1 = True
     isNum2 = True
     tempFlag = False    # 是否已存在小數點
 
     string = string.strip()
     if string.isnumeric() == True: return True
-
+    #print(string)
+    if len(string) <= 0: return False
     if string[0] == "+": string = string.strip("+")    # 去掉正負號
     elif string[0] == "-": string = string.strip("-")
 
@@ -289,279 +297,113 @@ def isAlphanumeric(str1):
 
     return True
 
-def patternScore(csvList):
-    sc = 0
-    for i in csvList: listLen.append(len(i))    # 記錄每一列有幾個
-    #print(listLen)
-
-    numExist = []    # 記錄有幾種長度
-    numExist.append(listLen[0])
-    
-    for i in listLen:
-        for j in numExist:
-            if i == j: break
-            elif j == numExist[len(numExist)-1]: numExist.append(i)
-        sc += ((i-1)/i)
-
-    sc /= len(numExist)
-    return sc 
-
-def typeScore(csvList):
-    #print(csvList)
+def makeType(csvList):
+    typeArray = []
+    typeNumArray = []
 
     for i in csvList: 
-        #print(i)
         subArray = []
+        subNum = []
 
-        for j in i:
-            #print(j)
-            
+        for j in i:            
             if isEmpty(j) == True:
-                typeMatrix.append(1)
                 subArray.append("empty")
+                subNum.append(1)
 
             elif isValidDatetime(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("datetime")
+                subNum.append(2)
             
             elif isValidDate(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("date")
+                subNum.append(3)
             
             elif isValidTime(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("time")
+                subNum.append(4)
 
             elif isValidUrl(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("url")
+                subNum.append(5)
 
             elif isValidEmail(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("email")
+                subNum.append(6)
 
             elif isPercentage(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("percentage")
+                subNum.append(7)
 
             elif isCurrency(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("currency")
+                subNum.append(8)
 
             elif isNumType(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("num type")
+                subNum.append(9)
 
             elif j.strip() == "N/A" or j.strip() == "n/a": 
-                typeMatrix.append(1)
                 subArray.append("n/a type")
+                subNum.append(10)
 
             elif isAlphanumeric(j) == True: 
-                typeMatrix.append(1)
                 subArray.append("alphanumeric")
+                subNum.append(11)
 
             else: 
-                typeMatrix.append(0)
                 subArray.append("no type")
+                subNum.append(12)
         
-        #print(subArray)
         typeArray.append(subArray)
-        #print(typeArray)
+        typeNumArray.append(subNum)
 
-    #print(typeArray)
-    #print(typeMatrix)
-    totalCell = len(typeMatrix)
-    #print(totalCell)
-    typeCell = 0    # "1" 個數
+    return typeNumArray
 
-    for i in typeMatrix: 
-        if i == 1: typeCell += 1
-    #print(typeCell)
-
-    if typeCell == 0: return 10 ** (-10)
-    else: return typeCell / totalCell
-
-def findCorrectFormat(csvList):
-    print("目前測試的 csv file 共有 " + str(len(csvList)) + " 行")
-    q = int(input("以 q 個 Row 為一組: "))
-
-    # 先用if else判斷要分成幾組
-    if len(csvList) % q != 0: groupNum = int(len(csvList) // q + 1)
-    else: groupNum = int(len(csvList) / q)
-
-    tempRecord = []                 # 暫時紀錄分組過程以選出每組的正確格式
-    firstTimeGroupingResult = []    # 紀錄首次分組後每組選出的正確格式
-
-    for i in range(0, groupNum):            # 外迴圈每圈代表一組
-        for j in range(0,q):                # 第一個內迴圈負責將該組q個row送入暫用array
-            if i * q + j < len(csvList):    # 確保最後一組不會因index超出csv file的row 數而報錯
-                tempRecord.append(typeArray[i * q + j])
-
-        maxCount = 0    # 紀錄最多出現次數
-        #print(tempRecord) 檢查每一組data是否正確
-        for j in range(0, len(tempRecord)):    # 第二個內迴圈負責選出該組內出現最多次的格式
-            tempCount = tempRecord.count(tempRecord[j])
-            if tempCount > maxCount:
-                maxCount = tempCount
-                maxAppearFormat = tempRecord[j]
-        #print(max_appear_format) 檢查選出的格式是否正確
-        firstTimeGroupingResult.append(maxAppearFormat)
-        tempRecord.clear()    # 進下一組前記得清空
-
-    maxCount = 0
-    for i in range(0, groupNum):    # 從第一次找出的格式中進行第二次選擇 同樣選出出現最多的格式
-        tempCount = firstTimeGroupingResult.count(firstTimeGroupingResult[i])
-        if tempCount > maxCount:
-            maxCount = tempCount
-            resultFormat = firstTimeGroupingResult[i]
-
-    return resultFormat    # 回傳最終選出的row格式
-
-def typeCheck(str):
-    if isEmpty(str) == True: return "empty"
-    elif isValidDatetime(str) == True: return "datetime"    
-    elif isValidDate(str) == True: return "date"
-    elif isValidTime(str) == True: return "time"
-    elif isValidUrl(str) == True: return "url"
-    elif isValidEmail(str) == True: return "email"
-    elif isPercentage(str) == True: return "percentage"
-    elif isCurrency(str) == True: return "currency"
-    elif isNumType(str) == True: return "num type"
-    elif str.strip() == "N/A" or str.strip() == "n/a": return "n/a type"
-    elif isAlphanumeric(str) == True: return "alphanumeric"
-    else: return "no type"
-
-def addDelimiter():
-    rowIndex = 0
-    for i in typeArray:
-        if len(i) < correctLen:
-            formatIndex = 0
-            columnIndex = 0
-            for j in i:
-                if j != correctFormat[formatIndex]: 
-                    for k in range(1, len(inputList[rowIndex][columnIndex])):
-                        frontType = typeCheck(inputList[rowIndex][columnIndex][:k])
-                        endType = typeCheck(inputList[rowIndex][columnIndex][k:])
-                        #print(inputList[rowIndex][columnIndex][:k], inputList[rowIndex][columnIndex][k:])
-                        #print(frontType, endType)
-                        
-                        if frontType == correctFormat[formatIndex]:
-                            try:
-                                if endType == correctFormat[formatIndex+1]:
-                                    frontStr = inputList[rowIndex][columnIndex][:k]
-                                    endStr = inputList[rowIndex][columnIndex][k:]
-                                    inputList[rowIndex][columnIndex] = frontStr
-                                    inputList[rowIndex].insert(columnIndex + 1, endStr)
-                                    typeArray[rowIndex][columnIndex] = frontType
-                                    typeArray[rowIndex].insert(columnIndex + 1, endType)
-                                    break
-                            except:
-                                if formatIndex == len(correctFormat)-1:
-                                    frontStr = inputList[rowIndex][columnIndex][:k]
-                                    endStr = inputList[rowIndex][columnIndex][k:]
-                                    inputList[rowIndex][columnIndex] = frontStr
-                                    inputList[rowIndex].insert(columnIndex + 1, endStr)
-                                    typeArray[rowIndex][columnIndex] = frontType
-                                    typeArray[rowIndex].insert(columnIndex + 1, endType)
-                                    break
-                formatIndex += 1
-                columnIndex += 1
-        rowIndex += 1
-    #print(inputList)
-
-def addNewline():
-    same = True
-    rowIndex = 0
-    tmpFront = []
-    tmpEnd = []
-
-    for i in typeArray:
-        if len(i) > 1.5 * correctLen: 
-            for j in range(correctLen):
-                if i[j] == correctFormat[j]: 
-                    tmpFront.append(inputList[rowIndex][j])
-                    continue
-                else:
-                    same = False
-                    break
-
-            for j in range(correctLen, len(inputList[rowIndex])): tmpEnd.append(inputList[rowIndex][j])
-
-            if same == True:
-                inputList[rowIndex] = tmpFront
-                rowIndex += 1
-                inputList.insert(rowIndex, tmpEnd)
-
-        rowIndex += 1
-
-    print(inputList)
-            
-
-def addNull():
-    for i in typeArray:
-        #print(i)
-        minus = len(correctFormat) - len(i)
-        if minus > 0:    # 如果正確type的row長度大於跑到的row則做檢查
-            index = 0    # index for correctFormat
-            for j in i:
-                #print(j)
-                isFound = False
-                temp = 0
-                if j != correctFormat[index]:    # 如果跑到的row的type和correctFormat的type不一樣，就從correctFormat往後找找看有沒有一樣的
-                    for k in range(1, len(correctFormat) - index):
-                        if j == correctFormat[index + k]:   # 找相同的type
-                            isFound = True
-                            temp = k    # 找到後記錄相同的type在後 temp個位置
-                            break
-                    
-                    if isFound == False: continue
-                    
-                    for l in range(k): i.insert(index + l, "n/a type")  # 補temp個 n/a type讓當前的type對應到正確格式的type
-                    
-                    index += temp   # index跳至已經修復完的位置
-                else:
-                    index += 1  # 若type相同，檢查下一個type
-
-    #print(typeArray)
-
-# main
-with open("csv.csv", newline = "") as csvfile:
-    lines = csv.reader(csvfile, delimiter = ";")
+def process_table(inputList):
+    choice = random.choice(['merge', 'delete'])     # delete: 0, merge: 1
     
-    inputList = []    # 形式 : [[a, b, c], [d, e]]
+    if choice == 'delete': 
+        row = random.randint(0, len(inputList)-1)
+        column = random.randint(0, len(inputList[row])-1)
+        inputList[row].pop(column)
+        inputList[row].append('')
+        choice_num = 0
 
-    for i in lines:
-        sub = []
-        for j in i: sub.append(j)  
-        inputList.append(sub)
-    #print(inputList) 
+    else:
+        row = random.randint(0, len(inputList)-2)
+        column = random.randint(0, len(inputList[row])-2)
+        inputList[row][column] += inputList[row][column+1]
+        inputList[row].pop(column + 1)
+        inputList[row].append('')
+        choice_num = 1
+    
+    return inputList, row, column, choice_num
 
-    listLen = []
-    typeMatrix = []    # 0, 1 矩陣
-    typeArray = []
+def csvParsing():
+    inputList = read()
+    processList, row, column, choice = process_table(inputList)
+    type = makeType(processList)
 
-    ps = patternScore(inputList)
-    #print(ps)
+    print(processList)
+    #print(type)
+    return processList, type, row, column, choice
 
-    ts = typeScore(inputList)
-    #print(ts)
-    #print(typeArray)
-    qs = ps * ts
-    #print(qs)
+def read():
+    with open("csv.csv", newline = "") as csvfile:
+        lines = csv.reader(csvfile, delimiter = ";")
+        
+        inputList = []    # 形式: [[a, b, c], [d, e]]
 
-    correctFormat = findCorrectFormat(inputList)
-    correctLen = len(correctFormat)
-    #print(correctFormat)
+        for i in lines:
+            sub = []
+            for j in i: sub.append(j)  
+            inputList.append(sub)
+        
+        return inputList
+    
+def count():
+    inputList = read()
+    return len(inputList), len(inputList[0])
 
-
-    addDelimiter()
-
-    addNewline()
-
-    addNull()
-
-    #result1 = addDelimiter(inputList)
-    #print(result1)
-
-    #result2 = addNewline(result1)
-    #print(result2)
+if __name__ == '__main__':
+    process_list, type, row, column, choice = csvParsing()
