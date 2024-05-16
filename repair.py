@@ -14,6 +14,7 @@ def check(input):
 def repair(table, row, column, choice):
     if choice == 0: 
         table[row].insert(column, '')
+        of = table[row][-1]
         table[row].pop()
     else:
         find = False
@@ -27,9 +28,11 @@ def repair(table, row, column, choice):
         if find == True:
             table[row].insert(column+1, table[row][column][record:])
             table[row][column] = table[row][column][:record]
+            of = table[row][-1]
             table[row].pop()
         else: 
             table[row].insert(column + 1, '')
+            of = table[row][-1]
             table[row].pop()
 
-    return table
+    return table, of
